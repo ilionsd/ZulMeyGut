@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-
-from voicepack.samplereader import SampleReader
-from voicepack import processing
-
-from learning import vad
+import os
+import sys
+import subprocess
 
 
 directory = 'data/Hyperdimension Neptunia'
-audio = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'
-subs  = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Subtitles03.ass'
+default_audio = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'
+default_subs  = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Subtitles03.ass'
 
 test_data = {
         'swear_speech' : 
@@ -24,27 +22,21 @@ test_data = {
         }
 test_case = 'swear_speech'
 
-Nfft = 1024
 start = test_data[test_case]['start']
 stop = test_data[test_case]['end']
 
-with SampleReader(directory + '/' + audio, blocksize=Nfft) as reader :
-    samplerate = reader.file.samplerate
-    channels = reader.file.channels
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+
+
+if __name__ == '__main__' :
+    task = [sys.executable,
+            './learning/envelope.py', 
+            '--start', '0:00:00.00', 
+            '--end'  , '0:01:55.00',
+            directory + '/' + default_audio,
+            directory + '/' + default_subs]
+    #result = subprocess.run(task, stdout=subprocess.PIPE, shell=True)
+    #print( result )
     
-    signal = reader.read(start=start, stop=stop, inseconds=True)
-
-channel = 0
-signal = signal[:, 0]
-emphased_signal = processing.preemphasis(signal, alpha=0.95)
-
-vad.make_envelope(signal)
-
-signal = signal.reshape((-1, Nfft))
-vad.make_vad_envelope(signal, samplerate)
-
-vad.make_envelope(emphased_signal)
-
-emphased_signal = emphased_signal.reshape((-1, Nfft))
-vad.make_vad_envelope(emphased_signal, samplerate)
-
+#sys.exit()
