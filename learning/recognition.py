@@ -1,12 +1,25 @@
 # -*- coding: utf-8 -*-
-import time
+import os
 import sys
+import time
+
+
+CURRENT_DIR = os.path.dirname( os.path.abspath(__file__) )
+PROJECT_DIR = os.path.join(CURRENT_DIR, '../')
+DATA_DIR = os.path.join(PROJECT_DIR, 'data/raw')
+DATASET_DIR = os.path.join(DATA_DIR, 'Hyperdimension Neptunia')
+AUDIO_NAME = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'
+AUDIO_FILE = os.path.join(DATASET_DIR, AUDIO_NAME)
+SUBS_NAME  = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Subtitles03.ass'
+SUBS_FILE  = os.path.join(DATASET_DIR, SUBS_NAME)
+
+
+# The Way of the Voice
+sys.path.append( PROJECT_DIR )
+
 import numpy as np
 from sklearn import mixture
 from collections import Counter
-
-the_way_of_voice = '../'
-sys.path.append( the_way_of_voice )
 
 from zulmeygut.voicepack.samplereader import SampleReader
 from zulmeygut.voicepack import processing
@@ -17,9 +30,6 @@ from zulmeygut.utility.chainindex import ChainIndex
 from zulmeygut.utility import graphics
 
 
-directory = '../data/raw/Hyperdimension Neptunia'
-audio = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'
-subs  = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Subtitles03.ass'
 Nfft = 1024
 preemphasis_alpha = .97
 block_duration = 3
@@ -35,13 +45,13 @@ freq_upper = 8000
 # Allocate features
 features = dict()
 
-with SampleReader(directory + '/' + audio) as reader :
+with SampleReader(AUDIO_FILE) as reader :
     samplerate = reader.file.samplerate
     channels = reader.file.channels
 
 blockframes = np.round(block_duration * samplerate / Nfft).astype( type(Nfft) )
 blocksize = Nfft * blockframes
-with SampleReader(directory + '/' + audio, blocksize) as reader :
+with SampleReader(AUDIO_FILE, blocksize) as reader :
     blocks = reader.block_number()
     
 blocks = 10
@@ -64,7 +74,7 @@ print( 'VAD_variance shape: ' + str(features['VAD_variance'].shape) )
 
 
 # Extract features
-with SampleReader(directory + '/' + audio, blocksize) as reader :
+with SampleReader(AUDIO_FILE, blocksize) as reader :
     print( 'Extracting features' )
     T0_PERF, T0_PROC = time.perf_counter(), time.process_time()
     percentage = 0.1
@@ -155,14 +165,15 @@ print( 'Merging predictions' )
 time_frame = Nfft / samplerate
 time_frame *= 1000 # ms
 model_timing = []
-for idx in np.ndindex( (channels, channels) ) :
+for model_idx in np.ndindex( (channels, channels) ) :
     timing = []
-    prediction = filtered_predictions[idx]
+    prediction = filtered_predictions[model_idx]
     start = ChainIndex(prediction.shape)
     while start.is_valid :
-        end = start.next()
+        end = start.chain_next()
         while end.is_valid and prediction[start.index] == prediction[end.index] :
-            end = end.next()
+            end = end.chain_next()
+            
         time_start = np.round(time_frame * start.index).astype(int)
         time_end = np.round(time_frame * end.index).astype(int)
         event = { 'label' : prediction[start.index], 'start' : time_start, 'end' : time_end }
@@ -171,7 +182,7 @@ for idx in np.ndindex( (channels, channels) ) :
     model_timing.append(timing)
     
 
-events = subtitles.extract_timing(directory + '/' + subs)   
+events = subtitles.extract_timing(SUBS_FILE)   
         
 
 
