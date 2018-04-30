@@ -5,10 +5,9 @@ import numpy as np
 from scipy import fftpack
 from scipy import signal as dsp
 
-from voicepack.utility import rolling_window
-from voicepack.utility import polygon
-from voicepack.utility import zero_elimination
-from voicepack.utility import moveaxis
+from ..utility.strides import rolling_window
+from ..utility.common import zero_elimination
+from ..utility.common import moveaxis
 
 
 def mfe(powers, size, lower, upper, samplerate, axis=-1) : 
@@ -31,6 +30,32 @@ def mfe(powers, size, lower, upper, samplerate, axis=-1) :
 
     def find_index(freq, samplerate, Nfft=512) :
         return np.round(Nfft * freq / samplerate).astype(type(Nfft))
+    
+    def polygon(x, y, mesh, default=0, dtype=np.float64) :
+        '''
+        (x - x1) / (x2 - x1) = (y - y1) / (y2 - y1) -->
+        --> y = [(y2 - y1) / (x2 - x1)] * x - [(y2 - y1) / (y2 - y1)] * x1 + y1
+        '''
+        def line(x, y, mesh, lb=np.less, rb=np.less_equal) :
+            cn = np.logical_and( lb(x[0], mesh), rb(mesh, x[1]) )
+            fn = lambda t: ((y[1] - y[0]) * (t - x[0]) / (x[1] - x[0])) + y[0]
+            return cn, fn
+            
+        it = np.nditer([ rolling_window(x, window=2), rolling_window(y, window=2) ],
+                        ['external_loop'], [['readonly'], ['readonly']])
+        
+        cn = np.array([])
+        fn = np.array([])
+        first = True
+        for xi, yi in it :
+            ci, fi = line(xi, yi, mesh, lb=np.less_equal if first else np.less, rb=np.less_equal)
+            cn = np.append(cn, ci)
+            fn = np.append(fn, fi)
+            first = False
+            
+        cn = cn.reshape((-1, mesh.size))
+        fn = np.append(fn, default)
+        return np.piecewise(mesh.astype(dtype), cn, fn)
     
     powers = np.asfarray(powers)
     energy = np.sum(powers, axis=axis)

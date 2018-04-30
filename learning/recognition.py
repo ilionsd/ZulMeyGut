@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 import time
+import sys
 import numpy as np
-
-from voicepack.samplereader import SampleReader
-from voicepack import processing
-from voicepack import feature
-from voicepack.utility import rolling_window
-from voicepack.utility import ChainIndex
-
-from subspack import subtitles
-
 from sklearn import mixture
-
 from collections import Counter
 
-import graphics
+the_way_of_voice = '../'
+sys.path.append( the_way_of_voice )
+
+from zulmeygut.voicepack.samplereader import SampleReader
+from zulmeygut.voicepack import processing
+from zulmeygut.voicepack import feature
+from zulmeygut.subspack import subtitles
+from zulmeygut.utility.strides import rolling_window
+from zulmeygut.utility.chainindex import ChainIndex
+from zulmeygut.utility import graphics
 
 
-directory = 'data/Hyperdimension Neptunia'
+directory = '../data/raw/Hyperdimension Neptunia'
 audio = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'
 subs  = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Subtitles03.ass'
 Nfft = 1024
@@ -44,7 +44,7 @@ blocksize = Nfft * blockframes
 with SampleReader(directory + '/' + audio, blocksize) as reader :
     blocks = reader.block_number()
     
-#blocks = 10
+blocks = 10
 samples = blockframes * blocks
 
 # MFCC

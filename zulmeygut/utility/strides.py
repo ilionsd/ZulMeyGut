@@ -1,30 +1,6 @@
 # -*- coding: utf-8 -*-
+
 import numpy as np
-
-
-
-def moveaxis(ndarray, axis_src, axis_dst) :
-    '''
-    '''
-    ndarray = np.asanyarray(ndarray)
-    if axis_src == axis_dst :
-        return ndarray.view()
-    else :
-        step = np.sign(axis_dst - axis_src)
-        for axis in range(axis_src, axis_dst, step) :
-            ndarray = np.swapaxes(ndarray, axis, axis + step)
-        return ndarray
-
-
-
-def zero_elimination(ndarray) :
-    '''
-    '''
-    ndarray = np.asfarray(ndarray)
-    ndarray[ndarray == 0] = np.finfo(ndarray.dtype).eps
-    return ndarray
-
-
 
 def rolling_window(array, window=(0,), asteps=None, wsteps=None, axes=None, toend=True):
     """Create a view of `array` which for every point gives the n-dimensional
@@ -189,75 +165,3 @@ def rolling_window(array, window=(0,), asteps=None, wsteps=None, axes=None, toen
     new_shape = new_shape[new_shape != 0]
     
     return np.lib.stride_tricks.as_strided(array, shape=new_shape, strides=new_strides)
-
-
-
-def shape_index(shape, index) :
-    if len(shape) == 0 :
-        return ()
-    else :
-        q, r = divmod(index, shape[-1])
-        return shape_index(shape[0 : -1], q) + (r,)
-    
-def plain_index(shape, multi_index) :
-    if len(multi_index) == 0 :
-        return 0
-    else :
-        return multi_index[-1] + shape[-1] * plain_index(shape[0 : -1], multi_index[0 : -1])
-    
-def max_multi_index(shape) :
-    index = ()
-    for k in range(len(shape)) :
-        index += (shape[k] - 1,)
-    return index
-        
-class ChainIndex :
-    def __init__(self, shape, index=0) :
-        self.shape = shape
-        self.index = index
-        self.multi_index = shape_index(self.shape, self.index)
-        self.is_valid = 0 <= index and index < plain_index(self.shape, max_multi_index(self.shape))
-        
-    def next(self) :
-        return ChainIndex(self.shape, self.index + 1)
-    
-    def prev(self) :
-        return ChainIndex(self.shape, self.index - 1)
-    
-    
-    
-def mirroring_crop(spectrogram, axis=-1) :
-    spectrogram = np.asfarray(spectrogram)
-    tmp = np.swapaxes(spectrogram, axis, -1)
-    Nfft = spectrogram.shape[-1]
-    half = Nfft // 2
-    tmp = tmp[... , 0 : half]
-    return np.swapaxes(tmp, axis, -1), half
-
-
-
-def polygon(x, y, mesh, default=0, dtype=np.float64) :
-    '''
-    (x - x1) / (x2 - x1) = (y - y1) / (y2 - y1) -->
-    --> y = [(y2 - y1) / (x2 - x1)] * x - [(y2 - y1) / (y2 - y1)] * x1 + y1
-    '''
-    def line(x, y, mesh, lb=np.less, rb=np.less_equal) :
-        cn = np.logical_and( lb(x[0], mesh), rb(mesh, x[1]) )
-        fn = lambda t: ((y[1] - y[0]) * (t - x[0]) / (x[1] - x[0])) + y[0]
-        return cn, fn
-        
-    it = np.nditer([ rolling_window(x, window=2), rolling_window(y, window=2) ],
-                    ['external_loop'], [['readonly'], ['readonly']])
-    
-    cn = np.array([])
-    fn = np.array([])
-    first = True
-    for xi, yi in it :
-        ci, fi = line(xi, yi, mesh, lb=np.less_equal if first else np.less, rb=np.less_equal)
-        cn = np.append(cn, ci)
-        fn = np.append(fn, fi)
-        first = False
-        
-    cn = cn.reshape((-1, mesh.size))
-    fn = np.append(fn, default)
-    return np.piecewise(mesh.astype(dtype), cn, fn)

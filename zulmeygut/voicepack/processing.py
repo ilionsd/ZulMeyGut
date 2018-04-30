@@ -33,3 +33,12 @@ def spectrogram(signal, axis=-1, inplace=False) :
     fourier = fftpack.fft( signal * dsp.hamming(Nfft), axis=-1, overwrite_x=inplace )
     powers = square_modulus(fourier, dtype=dtype)
     return np.swapaxes(powers, axis, -1)
+
+
+def mirroring_crop(spectrogram, axis=-1) :
+    spectrogram = np.asfarray(spectrogram)
+    tmp = np.swapaxes(spectrogram, axis, -1)
+    Nfft = spectrogram.shape[-1]
+    half = Nfft // 2
+    tmp = tmp[... , 0 : half]
+    return np.swapaxes(tmp, axis, -1), half
