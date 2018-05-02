@@ -6,6 +6,7 @@ import time
 
 CURRENT_DIR = os.path.dirname( os.path.abspath(__file__) )
 PROJECT_DIR = os.path.join(CURRENT_DIR, '../')
+
 DATA_DIR = os.path.join(PROJECT_DIR, 'data/raw')
 DATASET_DIR = os.path.join(DATA_DIR, 'Hyperdimension Neptunia')
 AUDIO_NAME = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'

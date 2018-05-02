@@ -3,7 +3,7 @@
 import re as regex
 from collections import namedtuple
 
-from utility import shape
+from ..utility import shape
 
 
 class Time( namedtuple('Time', ['hh', 'mm', 'ss', 'cc', 'raw']) ) :

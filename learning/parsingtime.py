@@ -1,7 +1,18 @@
 # -*- coding: utf-8 -*-
+import os
+import sys
+
+
+CURRENT_DIR = os.path.dirname( os.path.abspath(__file__) )
+PROJECT_DIR = os.path.join(CURRENT_DIR, '../')
+
+
+# The Way of the Voice
+sys.path.append( PROJECT_DIR )
 
 from utility.shape import multi, plain
 from subspack.event import TimeFormat
+
 
 shape = (2, 3)
 plain_index = 19

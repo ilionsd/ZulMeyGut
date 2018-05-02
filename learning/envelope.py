@@ -1,28 +1,34 @@
 # -*- coding: utf-8 -*-
+import os
+import sys
+
+
+CURRENT_DIR = os.path.dirname( os.path.abspath(__file__) )
+PROJECT_DIR = os.path.join(CURRENT_DIR, '../')
+
+
+# The Way of the Voice
+sys.path.append( PROJECT_DIR )
+
+import shlex
+import argparse
 
 import numpy as np
 from scipy import signal as dsp
 
-from subspack import event
-
-import sys
-import shlex
-import argparse
+from zulmeygut.subspack import event
         
-
-print( 'Hey, Im running! ' + __name__ )
 
 def main(argv) :
     start = '0:00:00.00'
     end   = '0:01:55.00'
-    directory = 'data/Hyperdimension Neptunia'
-    audio      = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'
-    subs  = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Subtitles03.ass'
+    audio = 'someaudio'
+    subs  = 'somesubs'
     argstr = '--start {0} --end {1} "{2}" "{3}"'.format(
             start, 
             end, 
-            directory + '/' + audio, 
-            directory + '/' + subs)
+            audio, 
+            subs)
     
     formatter = event.TimeFormat('SSA')
     
@@ -32,19 +38,20 @@ def main(argv) :
     parser.add_argument('audio'    , type=str)
     parser.add_argument('subtitles', type=str)
     
-    arglist = shlex.split(argstr)
-    print( arglist )
-    args = parser.parse_args( arglist )
-
+    print( 'Passed arguments:' )
+    print( argv )
+    args = parser.parse_args( argv )
     print(args)
     
-    args = parser.parse_args( sys.argv )
-
-
-
+    print( 'Predefined arguments' ) 
+    argv = shlex.split(argstr)
+    print(argv)
+    args = parser.parse_args(argv)
+    print(args)
+    
 
 if __name__ == '__main__' :
-    main(sys.argv)
+    main(sys.argv[1:])
     
     
 
