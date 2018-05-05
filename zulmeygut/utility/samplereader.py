@@ -16,6 +16,13 @@ class SampleReader :
     
     def __exit__(self, type, value, traceback) :
         self.file.close()
+        
+    @property
+    def samplerate(self) :
+        return self.file.samplerate
+    @property
+    def channels(self) :
+        return self.file.channels
     
     def to_sample(self, time) :
         if time is None :
@@ -55,7 +62,9 @@ class SampleReader :
         sample_0 = self.blocksize * index
         data, _ = sf.read(self.file.name, start=sample_0, frames=self.blocksize, dtype=self.dtype, fill_value=0)
         return data
-        
+
+
+
         
     
         

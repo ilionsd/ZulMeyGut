@@ -20,6 +20,14 @@ def preemphasis(signal, alpha=.95, prev=0., axis=0, inplace=False) :
         return np.swapaxes(signal, axis, 0)
 
 
+def butterworth_bandpass(signal, samplerate, band, order, axis=-1) :
+    signal = np.asfarray(signal)
+    band = np.asfarray(band)
+    nyquist_freq = samplerate / 2.
+    b, a = dsp.butter(N=order, Wn=band / nyquist_freq, btype='band')
+    return dsp.lfilter(b, a, signal, axis=axis)
+
+
 def spectrogram(signal, axis=-1, inplace=False) :
     '''
     '''

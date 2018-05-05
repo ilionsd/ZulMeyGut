@@ -1,41 +1,78 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 16 21:08:03 2018
+import os
+import sys
 
-@author: ilion
-"""
+CURRENT_DIR = os.path.dirname( os.path.abspath(__file__) )
+PROJECT_DIR = os.path.join(CURRENT_DIR, '../')
+
+# The Way of the Voice
+sys.path.append( PROJECT_DIR )
+
 
 import numpy as np
 
-import matplotlib.pyplot as plt
+from zulmeygut.voicepack import processing
+from zulmeygut.voicepack import activity
+from zulmeygut.subspack import event
+from zulmeygut.utility.graphics import plot
+from zulmeygut.utility import blockreader
 
-from voicepack import feature
+from helper.arguments import arguments
 
 
-def make_envelope(signal) :
-    '''
-    Plots signal and its envelope
-    '''
-    # Expect signal to be x(t)
-    signal = np.asfarray(signal)
-    envelope = feature.temporal_envelope(signal, axis=0)
+if __name__ == '__main__' :
+    audio, subtitles, start, end = arguments(sys.argv[1:], 'Voice Activity Detection learning')
     
-    # Plotting
-    fig = plt.figure('Temporal Envelope')
-    fig.suptitle('Temporal Envelope')
-    pic = fig.add_subplot('111')
-    pic.plot(signal)
-    pic.plot(envelope)
-    pic.grid()
-    return fig
+audio, subtitles = str(audio), str(subtitles)
+start, end = event.incenties(start), event.incenties(end)
 
-def make_vad_envelope(signal, samplerate) :
-    signal = np.asfarray(signal)
-    vad_env = feature.vad_envelope(signal, samplerate, axis=-1)
-    fig = plt.figure('VAD Envelope')
-    fig.suptitle('VAD Envelope')
-    pic = fig.add_subplot('111')
-    pic.plot(vad_env)
-    pic.grid()
-    return fig
+Ntropy = 3
+Nfft = 1024
+fpb = 100
+blocksize = Nfft * fpb
+channels, _, samplerate = blockreader.info(audio)
+samplerate_cc = samplerate // 100
+sample_0 = blockreader.align_floor(blocksize, samplerate_cc * start) 
+sample_n = blockreader.align_ceil (blocksize, samplerate_cc * end  )
+samples =  sample_n - sample_0
+frames = samples // Nfft
+
+vad_envelope = np.empty( (frames, channels), dtype=np.float64 )
+vad_variance = np.empty( (frames, channels), dtype=np.float64 )
+
+for block, index in blockreader.BlockReader(audio, sample_0, sample_n, blocksize, retindex=True, zeropadding=False) :
+    b, e = fpb * index, fpb * (index + 1) 
+    block = block.reshape( (Nfft, -1, channels) )
+    vad_envelope[b:e, ...] = activity.envelope_stat(block, samplerate, axis=0)
+    spectre = processing.spectrogram(block, axis=0)
+    vad_variance[b:e, ...] = activity.variance_stat(spectre, Ntropy, samplerate, axis=(1, 0))
+
+fusion_alpha = 0.5
+vad_fusion = fusion_alpha * vad_envelope + (1. - fusion_alpha) * np.log10(vad_variance)
+
+print( vad_envelope.nonzero() )
+fig0 = plot.linplot(vad_envelope.T[0], 'VAD envelope channel 0')
+fig1 = plot.linplot(vad_envelope.T[1], 'VAD envelope channel 1')
+
+fig2 = plot.linplot(vad_fusion.T[0], 'VAD fusion channel 0')
+fig3 = plot.linplot(vad_fusion.T[1], 'VAD fusion channel 1')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

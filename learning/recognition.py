@@ -22,13 +22,14 @@ import numpy as np
 from sklearn import mixture
 from collections import Counter
 
-from zulmeygut.voicepack.samplereader import SampleReader
+
 from zulmeygut.voicepack import processing
 from zulmeygut.voicepack import feature
 from zulmeygut.subspack import subtitles
+from zulmeygut.utility import graphics
 from zulmeygut.utility.strides import rolling_window
 from zulmeygut.utility.chainindex import ChainIndex
-from zulmeygut.utility import graphics
+from zulmeygut.utility.samplereader import SampleReader
 
 
 Nfft = 1024
@@ -47,8 +48,8 @@ freq_upper = 8000
 features = dict()
 
 with SampleReader(AUDIO_FILE) as reader :
-    samplerate = reader.file.samplerate
-    channels = reader.file.channels
+    samplerate = reader.samplerate
+    channels = reader.channels
 
 blockframes = np.round(block_duration * samplerate / Nfft).astype( type(Nfft) )
 blocksize = Nfft * blockframes
@@ -101,8 +102,8 @@ with SampleReader(AUDIO_FILE, blocksize) as reader :
     TN_PERF, TN_PROC = time.perf_counter(), time.process_time()
     print( 'Extraction completed in {} perf time and {} proc time'.format(TN_PERF - T0_PERF, TN_PROC - T0_PROC) )
 
-fig0 = graphics.linplot(features['MFCC'].T[0], 'MFCC Channel 0')
-fig1 = graphics.linplot(features['MFCC'].T[1], 'MFCC Channel 1')
+fig0 = graphics.mesh.linmesh(features['MFCC'].T[0], 'MFCC Channel 0')
+fig1 = graphics.mesh.linmesh(features['MFCC'].T[1], 'MFCC Channel 1')
 
         
 # Training models

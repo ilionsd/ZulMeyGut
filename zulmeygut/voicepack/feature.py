@@ -96,37 +96,12 @@ def mfcc(powers, size, lower, upper, samplerate, dc=True, axis=-1) :
 
 
 
-def temporal_envelope(signal, axis=-1) :
+def envelope(signal, axis=0) :
     '''
     Absolute value of analytic signal
     '''
     return np.absolute( dsp.hilbert(signal, axis=axis) )
 
-def vad_envelope(signal, samplerate, axis=-1) :
-    '''
-    Sub-Band temporal envelope feature
-    '''
-    def butterworth_bandpass(signal, samplerate, band, order, axis=-1) :
-        signal = np.asfarray(signal)
-        band = np.asfarray(band)
-        nyquist_freq = samplerate / 2.
-        b, a = dsp.butter(N=order, Wn=band / nyquist_freq, btype='band')
-        return dsp.lfilter(b, a, signal, axis=axis)
-
-    band2 = ( 500, 1000)
-    band5 = (3000, 4000)
-    butterworth_order = 6
-    signal2 = butterworth_bandpass(signal, samplerate, band2, order=butterworth_order, axis=axis)
-    signal5 = butterworth_bandpass(signal, samplerate, band5, order=butterworth_order, axis=axis)
-    envelope2 = temporal_envelope(signal2, axis=axis)
-    envelope5 = temporal_envelope(signal5, axis=axis)
-    q3_2 = np.percentile(envelope2, 75, axis=axis)
-    q1_2 = np.percentile(envelope2, 25, axis=axis)
-    mu2 = np.mean(envelope2, axis=axis)
-    mu5 = np.mean(envelope5, axis=axis)
-    x = (q3_2 - q1_2) - (mu2 - mu5)
-    return np.piecewise(x, [x > 1.], [np.log10, 0.])    
-    
     
 def entropy(spectrogram, Ntropy, axis=0) :
     '''
@@ -140,25 +115,6 @@ def entropy(spectrogram, Ntropy, axis=0) :
     padding = padding[:axis] + ((Ntropy, Ntropy),) + padding[axis + 1:]
     e = np.pad(e, padding, 'edge')
     return e
-
-def vad_variance(spectrogram, Ntropy, samplerate, axis=(0, 1)) :
-    '''
-    '''
-    spectrogram = np.asfarray(spectrogram)
-    Nfft = spectrogram.shape[ axis[-1] ]
-    
-    step = samplerate // (Nfft - 1)
-    # 2nd band first point
-    f_begin = np.ceil ( 500 / step).astype(np.int)
-    # 3rd band last point 
-    f_end   = np.floor(2000 / step).astype(np.int)
-    
-    spectrogram = np.swapaxes(spectrogram, axis[1], 0)
-    spectre_band = np.swapaxes( spectrogram[f_begin : f_end + 1, ...], axis[1], 0) 
-    entropy23 = entropy(spectre_band, Ntropy, axis=axis[0])
-    
-    entropy_var = np.var(entropy23, axis=axis[1])
-    return entropy_var
     
 
 

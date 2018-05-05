@@ -73,8 +73,8 @@ def main(argv) :
             script,
             '--start={}'.format(case['start']),
             '--end={}'.format(case['end']),
-            audio,
-            subtitles]
+            '"{}"'.format(audio),
+            '"{}"'.format(subtitles)]
     
     process = subprocess.run(task, stdout=subprocess.PIPE, shell=False)
     print( process.stdout )
