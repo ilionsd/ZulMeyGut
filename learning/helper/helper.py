@@ -10,10 +10,10 @@ PROJECT_DIR = os.path.join(CURRENT_DIR, '../../')
 # The Way of the Voice
 sys.path.append( PROJECT_DIR )
 
-from zulmeygut.subspack import event
+from zulmeygut.subspack import time
 
 def arguments(argv, description='') :
-    time_parser = event.TimeParser('SSA')
+    time_parser = time.TimeParser('SSA')
     
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('--start', type=time_parser.parse)
@@ -23,8 +23,11 @@ def arguments(argv, description='') :
     
     args = parser.parse_args( argv )
     
-    audio, subtitles = args.audio, args.subtitles
-    start, end = args.start, args.end
-    
-    return (audio, subtitles, start, end)
+    #audio, subtitles = args.audio, args.subtitles
+    #start, end = args.start, args.end
+    return args
+
+def dataset(datafile) :
+    head, _ = os.path.split(datafile)
+    return os.path.basename(head)
     

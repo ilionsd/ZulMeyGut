@@ -22,7 +22,7 @@ def envelope_stat(signal, samplerate, axis=-1) :
     mu2 = np.mean(envelope2, axis=axis)
     mu5 = np.mean(envelope5, axis=axis)
     stat = iqr2 - (mu2 - mu5)
-    return np.piecewise(stat, [stat > 1.], [np.log10, 0.])
+    return np.piecewise(stat + 1., [stat > 0], [np.log10, 0]) 
 
 
 def variance_stat(spectre, Ntropy, samplerate, axis=(0, 1)) :
@@ -41,4 +41,21 @@ def variance_stat(spectre, Ntropy, samplerate, axis=(0, 1)) :
     entropy23 = feature.entropy(spectre_band, Ntropy, axis=axis[0])
     
     stat = np.var(entropy23, axis=axis[1])
-    return stat
+    return np.log10(stat)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

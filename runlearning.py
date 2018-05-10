@@ -43,15 +43,11 @@ def main(argv) :
     main_parser.add_argument('script', choices=scripts + ['all'])
     subparsers = main_parser.add_subparsers()
     
-    #formatter = event.TimeFormat('SSA')
     dataset_parser = subparsers.add_parser('dataset', description='Case to process')
     dataset_parser.add_argument('dataset', choices=datasets)
     dataset_parser.add_argument('--case', type=str)
-    #dataset_parser.add_argument('--start', type=formatter.from_str)
-    #dataset_parser.add_argument('--end'  , type=formatter.from_str)
     
     args = main_parser.parse_args(argv)
-    #print( args )
     
     script = args.script + SCRIPT_EXT
     script = os.path.join(SCRIPTS_DIR, script)
@@ -65,18 +61,18 @@ def main(argv) :
     subtitles = dataset['subtitles']
     case = dataset['cases'][args.case]
     
-    
-    audio, subtitles = os.path.join(DATA_DIR, audio), os.path.join(DATA_DIR, subtitles)
+    audio     = os.path.join(DATA_DIR, str(args.dataset), audio    )
+    subtitles = os.path.join(DATA_DIR, str(args.dataset), subtitles)
     audio, subtitles = os.path.abspath(audio), os.path.abspath(subtitles)
     
     task = [sys.executable,
             script,
             '--start={}'.format(case['start']),
             '--end={}'.format(case['end']),
-            '"{}"'.format(audio),
-            '"{}"'.format(subtitles)]
+            '{}'.format(audio),
+            '{}'.format(subtitles)]
     
-    process = subprocess.run(task, stdout=subprocess.PIPE, shell=False)
+    process = subprocess.run(task, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
     print( process.stdout )
 
 if __name__ == '__main__' :

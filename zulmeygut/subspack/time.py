@@ -2,7 +2,7 @@
 
 import re as regex
 
-from ..utility import shape
+from zulmeygut.utility import shape
 
 
 class Time :
@@ -15,14 +15,20 @@ class Time :
         self.__raw = raw
         
     def __add__(self, other) :
-        if not other is Time :
+        if not other is EventTime :
             raise NotImplemented('Defined only for time')
         return raw_to_time(self.raw + other.raw)
     
     def __sub__(self, other) :
-        if not other is Time :
+        if not other is EventTime :
             raise NotImplemented('Defined only for time')
         return raw_to_time(self.raw - other.raw)
+    
+    def tup(self) :
+        return (self.__hh, self.__mm, self.__ss, self.__cc)
+    
+    def __str__(self) :
+        return '{:d}:{:02d}:{:02d}.{:02d} ({})'.format(self.__hh, self.__mm, self.__ss, self.__cc, self.__raw)
         
     @property
     def hh(self) :
@@ -122,7 +128,7 @@ class TimeFormatter :
         return self.__timeformat
     
     def format(self, time) :
-        hh, mm, ss, cc, _ = time
+        hh, mm, ss, cc = time.tup()
         return self.__view.format(hh, mm, ss, cc)
     
 def incenties(event_time) :
@@ -137,7 +143,6 @@ def inminutes(event_time) :
 def inhours(event_time) :
     return event_time.raw / (60 * 60 * 100)
 
-    
     
                 
         

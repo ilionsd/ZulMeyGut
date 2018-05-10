@@ -4,8 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
-
 def linplot(data, title='') :
     data = np.asfarray(data)
     fig = plt.figure(title)

@@ -6,17 +6,19 @@ import time
 
 CURRENT_DIR = os.path.dirname( os.path.abspath(__file__) )
 PROJECT_DIR = os.path.join(CURRENT_DIR, '../')
+REPORTS_DIR = os.path.join(PROJECT_DIR, 'reports')
+FIGURES_DIR = os.path.join(REPORTS_DIR, 'figures')
 
 DATA_DIR = os.path.join(PROJECT_DIR, 'data/raw')
-DATASET_DIR = os.path.join(DATA_DIR, 'Hyperdimension Neptunia')
+DATASET_DIR = os.path.join(DATA_DIR, 'hyperdimension-neptunia_01')
 AUDIO_NAME = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Audio02.flac'
 AUDIO_FILE = os.path.join(DATASET_DIR, AUDIO_NAME)
 SUBS_NAME  = '[Commie] Hyperdimension Neptunia The Animation - 01 [BD 1080p FLAC] [AEA707BB]_Subtitles03.ass'
 SUBS_FILE  = os.path.join(DATASET_DIR, SUBS_NAME)
 
-
 # The Way of the Voice
 sys.path.append( PROJECT_DIR )
+
 
 import numpy as np
 from sklearn import mixture
@@ -25,8 +27,9 @@ from collections import Counter
 
 from zulmeygut.voicepack import processing
 from zulmeygut.voicepack import feature
+from zulmeygut.voicepack import activity
 from zulmeygut.subspack import subtitles
-from zulmeygut.utility import graphics
+from zulmeygut.utility.graphics.report import Report
 from zulmeygut.utility.strides import rolling_window
 from zulmeygut.utility.chainindex import ChainIndex
 from zulmeygut.utility.samplereader import SampleReader
@@ -56,7 +59,7 @@ blocksize = Nfft * blockframes
 with SampleReader(AUDIO_FILE, blocksize) as reader :
     blocks = reader.block_number()
     
-blocks = 10
+#blocks = 10
 samples = blockframes * blocks
 
 # MFCC
@@ -90,9 +93,9 @@ with SampleReader(AUDIO_FILE, blocksize) as reader :
         data = reader.block(idx)
         data = processing.preemphasis(data, alpha=preemphasis_alpha, axis=0, inplace=False)
         data = data.reshape( (Nfft, -1, channels) )
-        #features['VAD_envelope'][b:e, :] = feature.vad_envelope(data, samplerate, axis=0)
+        features['VAD_envelope'][b:e, :] = activity.envelope_stat(data, samplerate, axis=0)
         data = processing.spectrogram(data, axis=0, inplace=False)
-        #features['VAD_variance'][b:e, :] = feature.vad_variance(data, Ntropy, samplerate, axis=(1, 0))
+        features['VAD_variance'][b:e, :] = activity.variance_stat(data, Ntropy, samplerate, axis=(1, 0))
         features['MFCC'][:, b:e, :] = feature.mfcc(data, features_number, 
                                                     freq_lower, freq_upper, samplerate, dc=False, axis=0)
         
@@ -102,8 +105,13 @@ with SampleReader(AUDIO_FILE, blocksize) as reader :
     TN_PERF, TN_PROC = time.perf_counter(), time.process_time()
     print( 'Extraction completed in {} perf time and {} proc time'.format(TN_PERF - T0_PERF, TN_PROC - T0_PROC) )
 
-fig0 = graphics.mesh.linmesh(features['MFCC'].T[0], 'MFCC Channel 0')
-fig1 = graphics.mesh.linmesh(features['MFCC'].T[1], 'MFCC Channel 1')
+
+report = Report(FIGURES_DIR, 'hyperdimension-neptunia_01', '0:00:00.00', '0:23:40.00')
+fig0 = report.linmesh(features['MFCC'].T[0], 'MFCC channel 0')
+fig1 = report.linmesh(features['MFCC'].T[1], 'MFCC channel 1')
+
+fig2 = report.linplot(features['VAD_envelope'].T[0], 'VAD envelope channel 0')
+fig3 = report.linplot(features['VAD_envelope'].T[1], 'VAD envelope channel 1')
 
         
 # Training models
