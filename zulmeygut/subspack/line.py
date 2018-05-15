@@ -18,8 +18,11 @@ class Ignore :
         
 
 class Format :
-    def __init__(self) :
+    def __init__(self, section, fields=[]) :
+        self.section = model.Section(section)
+        self.__used  = set()
         self.__order = list()
+        self.reset(fields)
 
     def load(self, line) :
         check, line = model.checkstrip_prefix(model.Prefix.Format, line)
@@ -29,16 +32,18 @@ class Format :
         
     def reset(self, fields=[]) :
         if fields is Format :
+            self.section = fields.section
             self.__order = fields.__order
         else :
             fields = list(fields)
             used = set()
             order = list()
+            section_fields = model.fieldsof_section(self.section)
             for field in fields :
-                if field in model.Style and field not in used :
+                if field in section_fields and field not in used :
                     order.append(field)
                     used.add(field)
-            self.__order = order
+            self.__used, self.__order = used, order
         
     def __str__(self) :
         fields = model.FIELD_SEPARATOR.join(self.order)
@@ -59,6 +64,21 @@ class Format :
     def __contains__(self, item) :
         return item in self.order 
     
+    def __getitem__(self, index) :
+        return self.__order[index]
+    
+    def __setitem__(self, index, field) :
+        section_fields = model.fieldsof_section(self.section)
+        if field not in section_fields :
+            raise ValueError('Field {} is not in section {}.'.format(field, self.section))
+        if field in self.used :
+            raise ValueError('Field {} is already used'.format(field))
+        self.__order[index] = field
+    
+    @property
+    def used(self) :
+        return self.__used
+        
     @property
     def order(self) :
         return self.__order
@@ -170,7 +190,7 @@ class Sound(Line) :
 class Movie(Line) :
     def load(self, line) :
        _, line = model.checkstrip_prefix(model.Prefix.Style, line)
-        return super.load(line)
+       return super.load(line)
         
     def __str__(self) :
         prefix = model.Prefix.Movie.name
@@ -213,15 +233,6 @@ def typeof_line(line) :
     prefix, _ = model.strip_prefix(line)
     return typeof_prefix(prefix)
 
-
-def read(line_types, fields, line) :
-    line = str(line)
-    line_types = set(line_types)
-    line_type = typeof_line(line)
-    if line_type in line_types :
-        l = line_type()
-        l.fields.reset(fields)
-        l.load(line)
     
     
 

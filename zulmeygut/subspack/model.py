@@ -41,7 +41,7 @@ Section = enum.Enum(
     value='Section',
     names=zip_fields(
             ('Script Info', 'V4+ Styles', 'Fonts', 'Events', 'Graphics'),
-            ('SCRIPT_INFO', 'V4P_STYLES', 'FONTS', 'EVENTS', 'GRAPHICS')) )
+            ('SCRIPT_INFO', 'STYLES    ', 'FONTS', 'EVENTS', 'GRAPHICS')) )
 
 
 def check_section(expected, line) :
@@ -111,7 +111,7 @@ def checkstrip_prefix(expected, line) :
         Prefix.PLAYDEPTH, 
         Prefix.TIMER,
     },
-    Section.V4P_STYLES : {
+    Section.STYLES : {
         Prefix.STYLE,
     },
     Section.FONTS : {},
@@ -318,9 +318,26 @@ Dialogue = enum.Enum(
     Dialogue.Text : str,
 })
 def typeof_field(field) :
-    return typeof_field.field_type[field]
+    try :
+        field = typeof_field.field_type[field]
+    except KeyError :
+        field = None
+    return field
 
 
+@static_variables(section_fields={
+    Section.SCRIPT_INFO : None,
+    Section.STYLES      : Style, 
+    Section.FONTS       : None,
+    Section.EVENTS      : Dialogue,
+    Section.GRAPHICS    : None
+})
+def fieldsof_section(section) :
+    try :
+        section = fieldsof_section.section_fields[section]
+    except KeyError :
+        section = None
+    return section
 
 
 
