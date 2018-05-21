@@ -7,7 +7,6 @@ from scipy import signal as dsp
 
 from ..utility.strides import rolling_window
 from ..utility.common import zero_elimination
-from ..utility.common import moveaxis
 
 
 def mfe(powers, size, lower, upper, samplerate, axis=-1) : 
@@ -89,9 +88,9 @@ def mfcc(powers, size, lower, upper, samplerate, dc=True, axis=-1) :
     mfcc_feature = fftpack.dct(lmfe_feature, axis=axis)
     if not dc :
         energy = zero_elimination(energy)
-        mfcc_feature = moveaxis(mfcc_feature, axis, 0)
+        mfcc_feature = np.moveaxis(mfcc_feature, axis, 0)
         mfcc_feature[0, ...] = np.log(energy)
-        mfcc_feature = moveaxis(mfcc_feature, 0, axis)
+        mfcc_feature = np.moveaxis(mfcc_feature, 0, axis)
     return mfcc_feature
 
 

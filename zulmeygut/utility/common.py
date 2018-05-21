@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+from deprecated import deprecated
 
 import numpy as np
 
 
+@deprecated(reason='There is a numpy.moveaxis since 1.11.0')
 def moveaxis(ndarray, axis_src, axis_dst) :
     '''
+    There is a numpy.moveaxis since 1.11.0
     '''
     ndarray = np.asanyarray(ndarray)
     if axis_src == axis_dst :

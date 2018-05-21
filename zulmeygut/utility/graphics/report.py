@@ -7,13 +7,12 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import BoundaryNorm
 from matplotlib.ticker import MaxNLocator
 
-from zulmeygut.subspack import event
 
 class Report :
     def __init__(self, path, dataset, start, end) :
         if not os.path.isdir(path) :
             raise ValueError( '`path` can only be directory ' )
-        self.dest = os.path.join(path, '{} [{} , {}]'.format(dataset, start, end) )
+        self.dest = os.path.join(path, '{}: [{} - {}]'.format(dataset, start, end) )
         if not os.path.exists(self.dest) :
             os.mkdir(self.dest)
             

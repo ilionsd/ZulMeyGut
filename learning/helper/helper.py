@@ -13,18 +13,14 @@ sys.path.append( PROJECT_DIR )
 from zulmeygut.subspack import time
 
 def arguments(argv, description='') :
-    time_parser = time.TimeParser('SSA')
-    
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('--start', type=time_parser.parse)
-    parser.add_argument('--end'  , type=time_parser.parse)
+    parser.add_argument('--start', type=time.parse_ssa)
+    parser.add_argument('--end'  , type=time.parse_ssa)
     parser.add_argument('audio'    , type=str)
     parser.add_argument('subtitles', type=str)
-    
+
     args = parser.parse_args( argv )
-    
-    #audio, subtitles = args.audio, args.subtitles
-    #start, end = args.start, args.end
+
     return args
 
 def dataset(datafile) :

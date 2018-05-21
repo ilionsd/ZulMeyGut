@@ -40,12 +40,11 @@ def main(argv) :
     main_parser = argparse.ArgumentParser(
             description='Launchs learning scripts with specified arguments',
             epilog='Nep-Nep')
-    main_parser.add_argument('script', choices=scripts + ['all'])
     subparsers = main_parser.add_subparsers()
-    
     dataset_parser = subparsers.add_parser('dataset', description='Case to process')
     dataset_parser.add_argument('dataset', choices=datasets)
     dataset_parser.add_argument('--case', type=str)
+    main_parser.add_argument('script', choices=scripts + ['all'])
     
     args = main_parser.parse_args(argv)
     
@@ -65,6 +64,12 @@ def main(argv) :
     subtitles = os.path.join(DATA_DIR, str(args.dataset), subtitles)
     audio, subtitles = os.path.abspath(audio), os.path.abspath(subtitles)
     
+    print( 'Executing script "{}" with:'.format(script) )
+    print( 'start {}'.format(case['start']) )
+    print( 'end   {}'.format(case['end'  ]) )
+    print( 'audio     "{}"'.format(audio    ) )
+    print( 'subtitles "{}"'.format(subtitles) )
+    
     task = [sys.executable,
             script,
             '--start={}'.format(case['start']),
@@ -73,7 +78,14 @@ def main(argv) :
             '{}'.format(subtitles)]
     
     process = subprocess.run(task, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
-    print( process.stdout )
+    
+    print( 'Return code: {}'.format(process.returncode) )
+    try :
+        process.check_returncode()
+    except subprocess.CalledProcessError :
+        print( 'Error:  {}'.format(process.stdout) )
+    else :
+        print( 'Output: {}'.format(process.stdout) )
 
 if __name__ == '__main__' :
     main(sys.argv[1:])
