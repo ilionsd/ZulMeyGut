@@ -14,7 +14,9 @@ import numpy as np
 
 from zulmeygut.voicepack import processing
 from zulmeygut.voicepack import activity
+from zulmeygut.subspack import model
 from zulmeygut.subspack import time
+from zulmeygut.subspack import script
 from zulmeygut.utility.graphics.report import Report
 from zulmeygut.utility import blockreader
 
@@ -54,7 +56,6 @@ for block, index in reader :
 fusion_alpha = 0.5
 vad_fusion = fusion_alpha * vad_envelope + (1. - fusion_alpha) * vad_variance
 
-print( vad_envelope.nonzero() )
 
 report = Report(FIGURES_DIR, helper.dataset(audio), start, end)
 
