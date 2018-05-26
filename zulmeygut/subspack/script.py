@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
+import numpy as np
 
 from . import model
 from . import line
 from .exception import BadLoad
-from ..utility.static_variables import static_variables
 
 
 class Info:
     def __init__(self):
         self.__fields = list()
         self.__values = dict()
-        
+
     def add(self, info):
         info = str(info)
         info_type, _, info = info.partition(model.LINETYPE_SEPARATOR)
@@ -24,8 +24,8 @@ class FormattedSection:
     def __init__(self, section):
         section = model.Section(section)
         self.__fields = line.Format(section)
-        self.__prefixes = list()
-        self.__entries = {field: list() for field in self.fields}
+        self.__prefixes = np.array([])
+        self.__entries = {field: np.array([], dtype=model.typeof_field(field)) for field in self.fields}
         self.__length = 0
 
     def reset(self, fields=[]):
@@ -38,7 +38,7 @@ class FormattedSection:
             try:
                 entries[field] = self.entries[field]
             except KeyError:
-                entries[field] = [model.typeof_field(field)()] * self.length
+                entries[field] = np.full(self.length, model.typeof_field(field)())
         self.__fields, self.__entries = fields, entries
 
     def load(self, lines):
@@ -66,8 +66,8 @@ class FormattedSection:
         except BadLoad as err:
             raise BadLoad('First prefix line of section {} is not a Format in {}. Nested {}'
                           .format(fields.section, lines, err))
-        prefixes = list()
-        entries = {field: list() for field in fields}
+        prefixes = np.array([])
+        entries = {field: np.array([], dtype=model.typeof_field(field)) for field in fields}
         length = 0
         next_section = False
         eof = False
@@ -87,9 +87,9 @@ class FormattedSection:
                             entry = stripped_line.split(model.FIELD_SEPARATOR, maxsplit=len(fields) - 1)
                             entry = [item.strip() for item in entry]
                             entry = dict(zip(fields, entry))
-                            prefixes.append(line.typeof_prefix(prefix))
+                            prefixes = np.append(prefixes, line.typeof_prefix(prefix))
                             for field in fields:
-                                entries[field].append(entry[field])
+                                entries[field] = np.append(entries[field], entry[field])
                             length += 1
         self.__fields.reset(fields)
         self.__prefixes, self.__entries, self.__length = prefixes, entries, length
@@ -109,6 +109,9 @@ class FormattedSection:
             self.__index += 1
             return entry
 
+    def __repr__(self):
+        return repr(self.__entries)
+
     def __iter__(self):
         return self.EntryIterator(self)
 
@@ -117,10 +120,16 @@ class FormattedSection:
 
     def select(self, *args):
         selection = dict()
+        section_fields = model.fieldsof_section(self.fields.section)
         for arg in args:
+            if arg is not section_fields:
+                arg = section_fields[arg]
             if arg in self.__entries:
                 selection[arg] = self.__entries[arg]
         return selection
+
+    def where(self, **kwargs):
+        pass
 
     def __getitem__(self, index):
         if index >= len(self):
