@@ -19,15 +19,14 @@ class Ignore:
 
 
 class Format:
-    def __init__(self, arg):
-        if isinstance(arg, Format):
-            self.__section = arg.__section
-            self.__used = arg.__used
-            self.__order = arg.__order
+    def __init__(self, fields=[]):
+        if isinstance(fields, Format):
+            self.__used = fields.__used
+            self.__order = fields.__order
         else:
-            self.__section = model.Section(arg)
             self.__used = set()
             self.__order = list()
+            self.reset(fields)
 
     def load(self, line):
         check, line = model.checkstrip_prefix(model.Prefix.Format, line)
@@ -38,21 +37,23 @@ class Format:
         self.reset(fields)
 
     def reset(self, fields=[]):
-        if isinstance(fields, Format):
-            self.__section = fields.__section
-            self.__used = fields.__used
-            self.__order = fields.__order
-        else:
-            fields = list(fields)
-            used = set()
-            order = list()
-            section_fields = model.fieldsof_section(self.section)
-            for field in fields:
+        fields = list(fields)
+        used = set()
+        order = list()
+        for field in fields:
+            if field not in used:
+                used.add(field)
+                order.append(field)
+        self.__used, self.__order = used, order
+
+    def enum_fields(self, section):
+        section_fields = model.fieldsof_section(section)
+        valid_fields = []
+        for field in self.__order:
+            if field not in section_fields:
                 field = section_fields[field]
-                if field in section_fields and field not in used:
-                    used.add(field)
-                    order.append(field)
-            self.__used, self.__order = used, order
+            valid_fields.append(field)
+        return Format(valid_fields)
 
     def __repr__(self):
         return repr(self.__order)
@@ -64,13 +65,13 @@ class Format:
         return '{}{} {}'.format(prefix, separator, fields)
 
     def __iter__(self):
-        return self.__order.__iter__()
+        return iter(self.__order)
 
     def __next__(self):
-        return self.__order.__next__()
+        return next(self.__order)
 
     def __len__(self):
-        return self.__order.__len__()
+        return len(self.__order)
 
     def __contains__(self, item):
         return item in self.__used
@@ -79,16 +80,23 @@ class Format:
         return self.__order[index]
 
     def __setitem__(self, index, field):
-        section_fields = model.fieldsof_section(self.section)
-        if field not in section_fields:
-            raise ValueError('Field {} is not in section {}.'.format(field, self.section))
-        if field in self.used:
+        if field in self.__used:
             raise ValueError('Field {} is already used'.format(field))
+        self.__used.remove(self.__order[index])
+        self.__used.add(field)
         self.__order[index] = field
 
-    @property
-    def section(self):
-        return self.__section
+    def __add__(self, other):
+        other = list(other)
+        return Format(self.__order + other)
+
+    def __radd__(self, other):
+        other = list(other)
+        return Format(other + self.__order)
+
+    def __iadd__(self, other):
+        other = list(other)
+        self.__order += other
 
     @property
     def order(self):

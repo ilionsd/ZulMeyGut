@@ -157,7 +157,7 @@ Style = enum.Enum(
              'ALIGNMENT', 
              'MARGINL', 'MARGINR', 'MARGINV',
              'ALPHALEVEL', 
-             'ENCODING')) )
+             'ENCODING')))
 
 
 Event = enum.Enum(
