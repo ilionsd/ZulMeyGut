@@ -58,8 +58,12 @@ def main(argv) :
     
     audio = dataset['audio']
     subtitles = dataset['subtitles']
-    case = dataset['cases'][args.case]
-    
+    try:
+        case = dataset['cases'][args.case]
+    except KeyError:
+        print('Argument "case" must be one of the folowing: {}'.format(dataset['cases'].keys()))
+        sys.exit(1)
+
     audio     = os.path.join(DATA_DIR, str(args.dataset), audio    )
     subtitles = os.path.join(DATA_DIR, str(args.dataset), subtitles)
     audio, subtitles = os.path.abspath(audio), os.path.abspath(subtitles)

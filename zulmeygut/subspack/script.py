@@ -5,6 +5,10 @@ Created on Tue Jun 12 15:43:29 2018
 
 @author: ilion
 """
+import pandas as pd
+
+from . import time
+
 
 def load_formatted(lines, section='', retiter=False):
     try:
@@ -50,3 +54,39 @@ def load_formatted(lines, section='', retiter=False):
         return fields, data, length, lines
     else:
         return fields, data, length
+
+
+def load_dataframe(lines, section=''):
+    fields, events, length = load_formatted(lines, section='[Events]')
+    events['Start'] = [time.tup_to_raw(time.parse_ssa(t)) for t in events['Start']]
+    events['End'] = [time.tup_to_raw(time.parse_ssa(t)) for t in events['End']]
+    return pd.DataFrame(events)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

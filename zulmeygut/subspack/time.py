@@ -13,7 +13,9 @@ from zulmeygut.utility.static_variables import static_variables
 from zulmeygut.utility import shape
 
 
-Time = namedtuple('Time', ['hh', 'mm', 'ss', 'cc'])
+class Time(namedtuple('Time', ['hh', 'mm', 'ss', 'cc'])):
+    def __repr__(self):
+        return '{:d}:{:02d}:{:02d}.{:02d}'.format(self.hh, self.mm, self.ss, self.cc)
 
 
 @static_variables(pattern=regex.compile('(?P<hh>\d):(?P<mm>[0-5]\d):(?P<ss>[0-5]\d)[.:](?P<cc>\d\d)'))

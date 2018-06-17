@@ -27,12 +27,15 @@ class Report :
         fig.suptitle(title)
         pic = fig.add_subplot('111')
         if data.ndim == 1 :
-            pic.plot(data)
+            pic.plot(data, label=title)
+            pic.legend()
         else :
             index = np.ndindex(data.shape[0])
-            for k in index :
+            labels = np.asarray([label.strip() for label in title.split('|')])
+            for k in index:
                 entry = np.ravel(data[k, ...])
-                pic.plot(entry)
+                pic.plot(entry, label=labels[k])
+            pic.legend()
         if savefig :
             filename = self.dest + '/' + title
             fig.savefig(filename, format='png')
