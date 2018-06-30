@@ -1,13 +1,13 @@
 import os
 import sys
 
-CURRENT_DIR = os.path.dirname( os.path.abspath(__file__) )
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.join(CURRENT_DIR, '../')
 REPORTS_DIR = os.path.join(PROJECT_DIR, 'reports')
 FIGURES_DIR = os.path.join(REPORTS_DIR, 'figures')
 
 # The Way of the Voice
-sys.path.append( PROJECT_DIR )
+sys.path.append(PROJECT_DIR)
 
 
 import numpy as np
@@ -23,7 +23,7 @@ from zulmeygut.utility import blockreader
 from helper import helper
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
     args = helper.arguments(sys.argv[1:], 'Voice Activity Detection learning')
     audio, subtitles = args.audio, args.subtitles
     start, end = args.start, args.end
@@ -47,10 +47,11 @@ vad_variance = np.empty( (frames, channels), dtype=np.float64 )
 speech = np.full(frames, False, dtype=np.bool)
 
 reader = blockreader.BlockReader(audio, sample_0, sample_n, blocksize, retindex=True, zeropadding=False)
+zf = (None, None)
 for block, index in reader :
     b, e = fpb * index, fpb * (index + 1) 
     block = block.reshape( (Nfft, -1, channels) )
-    vad_envelope[b:e, ...] = activity.envelope_stat(block, samplerate, axes=(1, 0))
+    vad_envelope[b:e, ...], zf = activity.envelope_stat(block, samplerate, axes=(1, 0), zi=zf)
     spectre = processing.spectrogram(block, axis=0)
     vad_variance[b:e, ...] = activity.variance_stat(spectre, Ntropy, samplerate, axes=(1, 0))
 
