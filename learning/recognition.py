@@ -67,16 +67,6 @@ features['MFCC'] = np.empty( (features_number, samples, channels), dtype=np.floa
 print( 'MFCC size:  ' + str(features['MFCC'].size ) )
 print( 'MFCC shape: ' + str(features['MFCC'].shape) )
 
-# VAD_envelope
-features['VAD_envelope'] = np.empty( (samples, channels), dtype=np.float64 )
-print( 'VAD_envelope size:  ' + str(features['VAD_envelope'].size ) )
-print( 'VAD_envelope shape: ' + str(features['VAD_envelope'].shape) )
-
-# VAD_variance
-features['VAD_variance'] = np.empty( (samples, channels), dtype=np.float64 )
-print( 'VAD_variance size:  ' + str(features['VAD_variance'].size ) )
-print( 'VAD_variance shape: ' + str(features['VAD_variance'].shape) )
-
 
 # Extract features
 with SampleReader(AUDIO_FILE, blocksize) as reader :
@@ -93,14 +83,9 @@ with SampleReader(AUDIO_FILE, blocksize) as reader :
         data = reader.block(idx)
         data = processing.preemphasis(data, alpha=preemphasis_alpha, axis=0, inplace=False)
         data = data.reshape( (Nfft, -1, channels) )
-        features['VAD_envelope'][b:e, :] = activity.envelope_stat(data, samplerate, axis=0)
         data = processing.spectrogram(data, axis=0, inplace=False)
-        features['VAD_variance'][b:e, :] = activity.variance_stat(data, Ntropy, samplerate, axis=(1, 0))
         features['MFCC'][:, b:e, :] = feature.mfcc(data, features_number, 
                                                     freq_lower, freq_upper, samplerate, dc=False, axis=0)
-        
-    # VAD_decision
-    #features['VAD_decision'] = fusion_alpha * features['VAD_envelope'] + (1. - fusion_alpha) * np.log10( features['VAD_variance'] )
 
     TN_PERF, TN_PROC = time.perf_counter(), time.process_time()
     print( 'Extraction completed in {} perf time and {} proc time'.format(TN_PERF - T0_PERF, TN_PROC - T0_PROC) )
