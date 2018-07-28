@@ -6,18 +6,26 @@ from scipy import fftpack
 from scipy import signal as dsp
 
 
-def preemphasis(signal, alpha=.95, prev=0., axis=0, inplace=False):
+def preemphasis(signal, alpha=.95, axis=0, zi=None, inplace=False):
     '''
     '''
     signal = np.asfarray(signal)
+    if zi is None:
+        zi_shape = signal.shape[:axis] + (1,) + signal.shape[axis + 1:]
+        zi = np.full(zi_shape, 0, dtype=signal.dtype)
     signal = np.swapaxes(signal, axis, 0)
+    zi = np.swapaxes(zi, axis, 0)
     if not inplace:
-        emphased = np.append(signal[0, ...] - prev, signal[1:, ...] - alpha * signal[:-1, ...])
-        return np.swapaxes(emphased, axis, 0)
-    else :
+        emphased = np.append(signal[0, ...] - zi, signal[1:, ...] - alpha * signal[:-1, ...])
+        emphased = np.swapaxes(emphased, axis, 0)
+        zf = np.take(emphased, [-1], axis)
+        return emphased, zf
+    else:
         for idx in np.ndindex(signal.shape[0]):
-            signal[idx, ...], prev = signal[idx, ...] - alpha * prev, signal[idx, ...]
-        return np.swapaxes(signal, axis, 0)
+            signal[idx, ...], zi = signal[idx, ...] - alpha * zi, signal[idx, ...]
+        signal = np.swapaxes(signal, axis, 0)
+        zf = np.take(signal, [-1], axis)
+        return signal, zf
 
 
 def butterworth_bandpass(signal, samplerate, band, order, axis=-1, zi=None):
@@ -31,7 +39,23 @@ def butterworth_bandpass(signal, samplerate, band, order, axis=-1, zi=None):
     return filtered, zf
 
 
-def spectrum(signal, axis=-1, ret=True, inplace=False):
+def spectrum(signal, axis=-1, inplace=False):
+    '''
+    Absolute value of DFT of signal divided into frames over given axis
+    '''
+    def square_modulus(ndarray, dtype):
+        return np.real(ndarray)**2 + np.imag(ndarray)**2
+
+    signal = np.asfarray(signal)
+    signal = np.swapaxes(signal, axis, -1)
+    Nfft = signal.shape[-1]
+    dtype = signal.dtype
+    fourier = fftpack.fft(signal * dsp.hamming(Nfft), axis=-1, overwrite_x=inplace)
+    powers = square_modulus(fourier, dtype=dtype)
+    return np.swapaxes(powers, axis, -1)
+
+
+def combined_spectrum(signal, axis=-1, ret=True, inplace=False):
     '''
     Absolute value of DFT of signal divided into frames over given axis
     '''

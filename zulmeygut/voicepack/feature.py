@@ -65,8 +65,8 @@ def mfe(powers, size, lower, upper, samplerate, axis=-1):
     point_limit = 1 + meldifference(upper, lower) // meldifference(lower + step, lower)
     if point_limit < size + 2:
         size = point_limit - 2
-    inds = find_index( melspace(lower, upper, size + 2), samplerate, Nfft )
-    rolling_inds = rolling_window( inds, window=3 )
+    inds = find_index(melspace(lower, upper, size + 2), samplerate, Nfft)
+    rolling_inds = rolling_window(inds, window=3)
 
     mfe_shape = powers.shape[:-1] + (size,)
     tmp = np.empty(mfe_shape)
