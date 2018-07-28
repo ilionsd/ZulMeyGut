@@ -72,8 +72,7 @@ for data, index in reader:
     data = data.reshape((Nfft, -1, channels))
     data = processing.spectrum(data, axis=0, inplace=False)
     features['MFCC'][:, b:e, :] = feature.mfcc(data, mfcc_number, 
-                                                    freq_lower, freq_upper, samplerate, dc=False, axis=0)
-
+            freq_lower, freq_upper, samplerate, dc=False, axis=0)
 print('Extraction completed')
 
 report = Report(FIGURES_DIR, helper.dataset(audio), start, end)
@@ -93,10 +92,10 @@ print('Training completed')
 
 # Testing models
 print('Testing model')
-predictions = np.empty((0, channels, samples), dtype='int')
+predictions = np.empty((0, channels, frames), dtype='int')
 scores = []
 for model_idx in range(channels):
-    test = np.empty((0, samples), dtype='int')
+    test = np.empty((0, frames), dtype='int')
     for test_idx in range(channels):
         prediction = model.predict(features['MFCC'].T[test_idx, ...])
         test = np.append(test, [prediction], axis=0)

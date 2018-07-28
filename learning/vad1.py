@@ -24,8 +24,8 @@ from helper import helper
 
 
 if __name__ == '__main__':
-    about = 'Efficient voice activity detection algorithm '
-            'based on sub-band temporal envelope and sub-band long-term signal variability'
+    about = ('Efficient voice activity detection algorithm '
+            'based on sub-band temporal envelope and sub-band long-term signal variability')
     args = helper.arguments(sys.argv[1:], about)
     audio, subtitles = args.audio, args.subtitles
     start, end = args.start, args.end
